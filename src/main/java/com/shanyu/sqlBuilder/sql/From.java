@@ -9,28 +9,33 @@
 
 package com.shanyu.sqlBuilder.sql;
 
-import lombok.Data;
+import org.apache.commons.lang.StringUtils;
 
-/**
- * ClassName:From <br/>
- * Function: TODO ADD FUNCTION. <br/>
- * Reason:	 TODO ADD REASON. <br/>
- * Date:     2017年8月21日 上午10:34:37 <br/>
- * @author   shanyu
- * @version  
- * @since    JDK 1.6
- * @see 	 
- */
+import com.google.common.base.Preconditions;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class From {
 	
 	public final static String FROM = "FROM";
 	
+	public final static String SEPARATOR = ".";
+	
 	private String tableName;
 	
-	public String toSql(){
+	private String catalog;
+	
+	public String toSql() throws Exception{
+		Preconditions.checkArgument(StringUtils.isNotEmpty(tableName), "tableName is null!");
+		Preconditions.checkArgument(StringUtils.isNotEmpty(catalog), "catalog is null!");
 		StringBuilder builder = new StringBuilder();
-		builder.append(FROM).append(" ").append(tableName);
+		builder.append(FROM).append(" ").append(catalog).append(SEPARATOR).append(tableName);
 		return builder.toString();
 	}
 	

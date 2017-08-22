@@ -29,6 +29,8 @@ public abstract class Expression {
 	
 	public abstract String right();//右表达式
 	
+	public Object value(){return null;}; //参数值
+	
 	public Operator op;//操作符
 	
 	public String toSql(){

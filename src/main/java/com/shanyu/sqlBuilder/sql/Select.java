@@ -14,36 +14,38 @@ import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.shanyu.sqlBuilder.exception.BuilderException;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import lombok.Data;
 
-/**
- * ClassName:Select <br/>
- * Function: TODO ADD FUNCTION. <br/>
- * Reason:	 TODO ADD REASON. <br/>
- * Date:     2017年8月21日 上午9:58:54 <br/>
- * @author   shanyu
- * @version  
- * @since    JDK 1.6
- * @see 	 
- */
 @Data
 public class Select {
 	
 	private List<String> selectColumns;
 	
+	private Map<String,String> aliasMap;
+	
 	private final static String SELECT = "SELECT";
 	
-	public String toSql(Map<String,String> aliasMap) throws BuilderException{
+	public void add(String...queryProps){
+		if(selectColumns==null){
+			selectColumns = Lists.newArrayList();
+		}
+		for (String prop : queryProps) {
+			if(aliasMap.containsKey(prop)){
+				selectColumns.add(prop);
+			}
+		}
+	}
+	
+	public String toSql() throws Exception{
 		StringBuilder builder = new StringBuilder();
 		builder.append(SELECT);
 		if(CollectionUtils.isNotEmpty(selectColumns)){
 			for (String alias : selectColumns) {
+				Preconditions.checkArgument(aliasMap.containsKey(alias), "字段"+alias+"不存在！");
 				String columnName = aliasMap.get(alias);
-				if(columnName==null){
-					throw new BuilderException("字段"+alias+"不存在！");
-				}
 				builder.append(" ").append(columnName).append(" ").append(alias).append(",");
 			}
 			if(selectColumns.size()>1){

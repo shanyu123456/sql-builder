@@ -32,12 +32,12 @@ public @interface Table {
 	 * 
 	 * tableName:表名. <br/>
 	 */
-	String tableName();
+	String tableName() default "";
 	
 	/**
 	 * 
 	 * catalog:对应的数据库目录或者用户 <br/>
 	 */
-	String calatog();
+	String calatog() default "";
 }
 

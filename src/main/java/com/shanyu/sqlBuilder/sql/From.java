@@ -31,7 +31,7 @@ public class From {
 	
 	private String catalog;
 	
-	public String toSql() throws Exception{
+	public String toSql(){
 		Preconditions.checkArgument(StringUtils.isNotEmpty(tableName), "tableName is null!");
 		Preconditions.checkArgument(StringUtils.isNotEmpty(catalog), "catalog is null!");
 		StringBuilder builder = new StringBuilder();

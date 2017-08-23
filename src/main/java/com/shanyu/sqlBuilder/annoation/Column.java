@@ -32,9 +32,9 @@ public @interface Column {
 	 * 
 	 * columnName:数据库列名<br/>
 	 */
-	String columnName();
+	String columnName() default "";
 	
-	String comment();
+	String comment() default "";
 
 }
 

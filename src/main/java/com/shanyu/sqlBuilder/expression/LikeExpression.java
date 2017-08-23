@@ -33,8 +33,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LikeExpression extends Expression{
 	
-	private final static String sign ="%";
-	
 	private String left;
 	
 	private Operator op;
@@ -42,27 +40,6 @@ public class LikeExpression extends Expression{
 	private String right;
 	
 	private MatchMode matchMode;
-
-	@Override
-	public String left() {
-		return getLeft();
-	}
-
-	@Override
-	public String right() {
-		StringBuilder builder = new StringBuilder();
-		if(matchMode==null){
-			builder.append(right).append(sign);
-		}
-		if(matchMode == MatchMode.start){
-			builder.append(right).append(sign);
-		}else if(matchMode ==MatchMode.anyWhere){
-			builder.append(sign).append(getRight()).append(sign);
-		}else{
-			builder.append(sign).append(getRight());
-		}
-		return builder.toString();
-	}
-
+	
 }
 

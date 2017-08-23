@@ -11,7 +11,9 @@ package com.shanyu.sqlBuilder.expression;
 
 import com.shanyu.sqlBuilder.constant.Operator;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * ClassName:Expression <br/>
@@ -23,21 +25,16 @@ import lombok.Data;
  * @see 	 
  */
 @Data
-public abstract class Expression {
+@NoArgsConstructor
+@AllArgsConstructor
+public class Expression {
 	
-	public abstract String left();//左表达式
-	
-	public abstract String right();//右表达式
-	
-	public Object value(){return null;}; //参数值
-	
+	private Object left;//左表达式
+
 	public Operator op;//操作符
 	
-	public String toSql(){
-		StringBuilder builder = new StringBuilder();
-		builder.append(left()).append(op.getOp()).append(right());
-		return builder.toString();
-	}
+	private Object right;//右表达式
+		
 
 }
 

@@ -24,32 +24,32 @@ import com.shanyu.sqlBuilder.constant.Operator;
  */
 public class Expressions {
 	
-	public static Expression lt(String left,String right){
-		return new SimpleExpression(left,Operator.lt,right);
+	public static Expression lt(String left,Object right){
+		return new Expression(left,Operator.lt,right);
 	}
 	
-	public static Expression le(String left,String right){
-		return new SimpleExpression(left,Operator.le,right);
+	public static Expression le(String left,Object right){
+		return new Expression(left,Operator.le,right);
 	}
 	
-	public static Expression gt(String left,String right){
-		return new SimpleExpression(left,Operator.gt,right);
+	public static Expression gt(String left,Object right){
+		return new Expression(left,Operator.gt,right);
 	}
 	
-	public static Expression ge(String left,String right){
-		return new SimpleExpression(left,Operator.ge,right);
+	public static Expression ge(String left,Object right){
+		return new Expression(left,Operator.ge,right);
 	}
 	
-	public static Expression eq(String left,String right){
-		return new SimpleExpression(left,Operator.eq,right);
+	public static Expression eq(String left,Object right){
+		return new Expression(left,Operator.eq,right);
 	}
 	
 	public static Expression and(Expression left, Expression right){
-		return new ComplexExpression(left,Operator.and, right);
+		return new Expression(left,Operator.and, right);
 	}
 	
 	public static Expression or(Expression left, Expression right){
-		return new ComplexExpression(left,Operator.or, right);
+		return new Expression(left,Operator.or, right);
 	}
 	
 	public static Expression like(String left,String right,MatchMode matchMode){

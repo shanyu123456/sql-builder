@@ -16,29 +16,33 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 import com.cjsc.common.utils.camelCase.CamelCaseUtil;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.shanyu.sqlBuilder.annoation.Column;
 import com.shanyu.sqlBuilder.annoation.Entity;
 import com.shanyu.sqlBuilder.annoation.Table;
+import com.shanyu.sqlBuilder.constant.MatchMode;
+import com.shanyu.sqlBuilder.expression.Expression;
 import com.shanyu.sqlBuilder.sql.From;
 import com.shanyu.sqlBuilder.sql.Select;
 import com.shanyu.sqlBuilder.sql.Where;
 
-import lombok.Data;
+import oracle.net.aso.f;
 
 /**
  * ClassName:SqlBuilder <br/>
- * Function: TODO ADD FUNCTION. <br/>
- * Reason:	 TODO ADD REASON. <br/>
  * Date:     2017年8月21日 上午9:09:50 <br/>
  * @author   shanyu
  * @version  
  * @since    JDK 1.6
  * @see 	 
  */
-@Data
 public class SqlBuilder {
+	
+	private SqlBuilder(){
+		
+	}
 	
 	private Class<?> entity;
 	
@@ -61,18 +65,18 @@ public class SqlBuilder {
 	 * @param entity    
 	 * @throws
 	 */
-	public void dealWithEntity(){
-		Annotation[] clsAnnoations=entity.getAnnotations();
+	private void dealWithEntity(){
+		Annotation[] clsAnnoations=entity.getDeclaredAnnotations();
 		for (Annotation annotation : clsAnnoations) {
 			if(annotation instanceof Entity){
 				
 			}
 			if(annotation instanceof Table){
-				if(StringUtils.isNotBlank(((Table) annotation).tableName())&&StringUtils.isNotBlank(((Table) annotation).tableName())){
-					String tableName = ((Table) annotation).tableName();
-					String catalog = ((Table) annotation).calatog();
-					this.from = new From(tableName,catalog);
-				}
+				String tableName = ((Table) annotation).tableName();
+				String catalog = ((Table) annotation).calatog();
+				Preconditions.checkArgument(StringUtils.isNotBlank(tableName), "table name is null!");
+				Preconditions.checkArgument(StringUtils.isNotBlank(catalog), "catalog name is null!");
+				this.from = new From(tableName,catalog);
 			}
 		}
 		Field[] fields=entity.getDeclaredFields();
@@ -97,7 +101,7 @@ public class SqlBuilder {
 				if(StringUtils.isNotBlank(columnName)){
 					aliasMap.put(field.getName(), columnName);
 				}else{
-					aliasMap.put(field.getName(), CamelCaseUtil.camelCaseToUnderline(columnName));
+					aliasMap.put(field.getName(), CamelCaseUtil.camelCaseToUnderline(field.getName()));
 				}
 			}
 		}
@@ -109,11 +113,12 @@ public class SqlBuilder {
 	 * @param qureyProps    
 	 * @throws
 	 */
-	public void select(String...queryProps){
-		if(select==null){
-			select = new Select();
-			select.setAliasMap(aliasMap); 
-		}
+	private void initSelect(){
+		select = new Select();
+		select.setAliasMap(aliasMap); 
+	}
+	
+	private void select(String...queryProps){
 		select.add(queryProps);
 	}
 	
@@ -123,26 +128,72 @@ public class SqlBuilder {
 	 * @Description: 初始化where语句   
 	 * @throws
 	 */
-	public void initWhere(){
+	private void initWhere(){
 		if(paramsMap==null){
 			paramsMap = Maps.newHashMap();
 		}
 		if(where==null){
-			where = new Where(Lists.newArrayList(),paramsMap,null);
+			where = new Where(Lists.newArrayList(),paramsMap,aliasMap,Lists.newArrayList());
 		}
 	}
 	
-	/**
-	 * 
-	 * @Title: eq
-	 * @Description: (这里用一句话描述这个方法的作用)
-	 * @param comumn
-	 * @param value    
-	 * @throws
-	 */
 	public void eq(String param,Object value){
-		initWhere();
-		
+		Preconditions.checkArgument(aliasMap.containsKey(param),"column "+param+" not exists!");
+		where.eq(param, value);
+	}
+	public void lt(String param,Object value){
+		Preconditions.checkArgument(aliasMap.containsKey(param),"column "+param+" not exists!");
+		where.lt(param, value);
+	}
+	public void le(String param,Object value){
+		Preconditions.checkArgument(aliasMap.containsKey(param),"column "+param+" not exists!");
+		where.le(param, value);
+	}
+	public void gt(String param,Object value){
+		Preconditions.checkArgument(aliasMap.containsKey(param),"column "+param+" not exists!");
+		where.gt(param, value);
+	}
+	public void ge(String param,Object value){
+		Preconditions.checkArgument(aliasMap.containsKey(param),"column "+param+" not exists!");
+		where.ge(param, value);
+	}
+	public void like(String param,String value){
+		Preconditions.checkArgument(aliasMap.containsKey(param),"column "+param+" not exists!");
+		where.like(param, value);
+	}
+	public void like(String param,String value,MatchMode matchMode){
+		Preconditions.checkArgument(aliasMap.containsKey(param),"column "+param+" not exists!");
+		where.like(param, value,matchMode);
+	}
+	public void and(Expression expression){
+		where.addExpression(expression);
+	}
+	public void or(Expression expression){
+		where.addExpression(expression);
+	}
+	
+	public static SqlBuilder createBuilder(Class<?> entity,String...queryProps){
+		SqlBuilder builder = new SqlBuilder();
+		builder.entity = entity;
+		builder.dealWithEntity();
+		builder.initWhere();
+		builder.initSelect();
+		if(queryProps!=null){
+			builder.select(queryProps);
+		}
+		return builder;
+	}
+	
+	public String toSql(){
+		StringBuilder builder = new StringBuilder();
+		builder.append(select.toSql()).append(from.toSql()).append(where.toSql());
+		return builder.toString();
+	}
+	
+	public static void main(String[] args) {
+		SqlBuilder builder = SqlBuilder.createBuilder(TClientInfo.class);
+		builder.eq("id", 1);
+		System.out.println(builder.toSql());
 	}
 	
 }

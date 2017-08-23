@@ -19,13 +19,15 @@ package com.shanyu.sqlBuilder.constant;
  */
 public enum MatchMode {
 	
-	start("前缀匹配","key%"),
+	start("前缀匹配","?%"),
 	
-	end("后缀匹配","%key"),
+	end("后缀匹配","%?"),
 	
-	anyWhere("模糊","%key%"),
+	anyWhere("模糊","%?%"),
 	
 	;
+	
+	private final static String KEY = "?";
 	
 	private String desc;
 	
@@ -42,6 +44,19 @@ public enum MatchMode {
 	private MatchMode(String desc,String value){
 		this.desc = desc;
 		this.value = value;
+	}
+	
+	/**
+	 * 
+	 * @Title: MatchKey
+	 * @Description: 匹配串
+	 * @param mode
+	 * @param key
+	 * @return    
+	 * @throws
+	 */
+	public static String MatchKey(MatchMode mode,String key){
+		return mode.getValue().replace(KEY, key);
 	}
 
 }

@@ -9,10 +9,13 @@
 
 package com.shanyu.sqlBuilder.builder;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.cjsc.common.utils.camelCase.CamelCaseUtil;
@@ -20,15 +23,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.shanyu.sqlBuilder.annoation.Column;
-import com.shanyu.sqlBuilder.annoation.Entity;
 import com.shanyu.sqlBuilder.annoation.Table;
 import com.shanyu.sqlBuilder.constant.MatchMode;
 import com.shanyu.sqlBuilder.expression.Expression;
 import com.shanyu.sqlBuilder.sql.From;
 import com.shanyu.sqlBuilder.sql.Select;
 import com.shanyu.sqlBuilder.sql.Where;
-
-import oracle.net.aso.f;
 
 /**
  * ClassName:SqlBuilder <br/>
@@ -66,19 +66,13 @@ public class SqlBuilder {
 	 * @throws
 	 */
 	private void dealWithEntity(){
-		Annotation[] clsAnnoations=entity.getDeclaredAnnotations();
-		for (Annotation annotation : clsAnnoations) {
-			if(annotation instanceof Entity){
-				
-			}
-			if(annotation instanceof Table){
-				String tableName = ((Table) annotation).tableName();
-				String catalog = ((Table) annotation).calatog();
-				Preconditions.checkArgument(StringUtils.isNotBlank(tableName), "table name is null!");
-				Preconditions.checkArgument(StringUtils.isNotBlank(catalog), "catalog name is null!");
-				this.from = new From(tableName,catalog);
-			}
-		}
+//		Entity entityAnnoation = entity.getDeclaredAnnotation(Entity.class);
+		Table table = entity.getDeclaredAnnotation(Table.class);
+		String tableName = table.tableName();
+		String catalog = table.calatog();
+		Preconditions.checkArgument(StringUtils.isNotBlank(tableName), "table name is null!");
+		Preconditions.checkArgument(StringUtils.isNotBlank(catalog), "catalog name is null!");
+		this.from = new From(tableName,catalog);
 		Field[] fields=entity.getDeclaredFields();
 		aliasMap = Maps.newHashMap();
 		for (Field field : fields) {
@@ -94,15 +88,13 @@ public class SqlBuilder {
 	 * @throws
 	 */
 	private void fillAliasMap(Field field){
-		Annotation[] annoations = field.getDeclaredAnnotations();
-		for (Annotation annotation : annoations) {
-			if(annotation instanceof Column){
-				String columnName = ((Column) annotation).columnName();
-				if(StringUtils.isNotBlank(columnName)){
-					aliasMap.put(field.getName(), columnName);
-				}else{
-					aliasMap.put(field.getName(), CamelCaseUtil.camelCaseToUnderline(field.getName()));
-				}
+		Column column = field.getDeclaredAnnotation(Column.class);
+		if(column!=null){
+			String columnName = column.columnName();
+			if(StringUtils.isNotBlank(columnName)){
+				aliasMap.put(field.getName(), columnName);
+			}else{
+				aliasMap.put(field.getName(), CamelCaseUtil.camelCaseToUnderline(field.getName()));
 			}
 		}
 	}
@@ -133,7 +125,7 @@ public class SqlBuilder {
 			paramsMap = Maps.newHashMap();
 		}
 		if(where==null){
-			where = new Where(Lists.newArrayList(),paramsMap,aliasMap,Lists.newArrayList());
+			where = new Where(Lists.newArrayList(),paramsMap,aliasMap);
 		}
 	}
 	
@@ -190,10 +182,20 @@ public class SqlBuilder {
 		return builder.toString();
 	}
 	
-	public static void main(String[] args) {
-		SqlBuilder builder = SqlBuilder.createBuilder(TClientInfo.class);
-		builder.eq("id", 1);
-		System.out.println(builder.toSql());
+	public Map<String,Object> getParamMap(){
+		return paramsMap;
+	}
+	
+	public Map<String,String> getAliasMap(){
+		return aliasMap;
+	}
+	
+	public List<String> getSelectColumns(){
+		if(CollectionUtils.isEmpty(select.getSelectColumns())){
+			return Lists.newArrayList(aliasMap.keySet());
+		}else{
+			return select.getSelectColumns();
+		}
 	}
 	
 }

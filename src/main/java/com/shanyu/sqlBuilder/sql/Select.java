@@ -28,8 +28,6 @@ public class Select {
 	
 	private final static String SELECT = "SELECT ";
 	
-	private final static String SELECT_ALL ="* ";
-	
 	public void add(String...queryProps){
 		if(selectColumns==null){
 			selectColumns = Lists.newArrayList();
@@ -50,10 +48,12 @@ public class Select {
 				String columnName = aliasMap.get(alias);
 				builder.append(columnName).append(" ").append(alias).append(", ");
 			}
-			builder.deleteCharAt(builder.length()-2);
 		}else{
-			builder.append(SELECT_ALL);
+			for (String alias : aliasMap.keySet()) {
+				builder.append(aliasMap.get(alias)).append(" ").append(alias).append(", ");
+			}
 		}
+		builder.deleteCharAt(builder.length()-2);
 		return builder.toString();
 	}
 

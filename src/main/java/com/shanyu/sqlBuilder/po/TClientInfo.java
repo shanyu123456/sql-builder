@@ -1,13 +1,13 @@
 /**
  * Project Name:sql-builder
  * File Name:TClientInfo.java
- * Package Name:com.shanyu.sqlBuilder.builder
- * Date:2017年8月23日下午4:48:23
- * Copyright (c) 2017, chenzhou1025@126.com All Rights Reserved.
+ * Package Name:com.shanyu.sqlBuilder.po
+ * Date:2017年8月24日下午4:03:18
+ * Copyright (c) 2017, shanyu123456@126.com All Rights Reserved.
  *
 */
 
-package com.shanyu.sqlBuilder.builder;
+package com.shanyu.sqlBuilder.po;
 
 import com.shanyu.sqlBuilder.annoation.Column;
 import com.shanyu.sqlBuilder.annoation.Entity;
@@ -19,21 +19,28 @@ import lombok.Data;
  * ClassName:TClientInfo <br/>
  * Function: TODO ADD FUNCTION. <br/>
  * Reason:	 TODO ADD REASON. <br/>
- * Date:     2017年8月23日 下午4:48:23 <br/>
+ * Date:     2017年8月24日 下午4:03:18 <br/>
  * @author   shanyu
  * @version  
  * @since    JDK 1.6
  * @see 	 
  */
-@Data
 @Entity
 @Table(tableName="t_client_info",calatog="custgroup")
+@Data
 public class TClientInfo {
 	
 	@Column
-	private Integer id;
+	private String clientId;
 	
 	@Column
-	private Integer uid;
+	private String idKind;
+	
+	@Column
+	private String idNo;
+	
+	@Column
+	private String userName;
+
 }
 

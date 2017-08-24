@@ -47,10 +47,10 @@ public class Where {
 	private Map<String,Object> paramsMap;
 	
 	private Map<String,String> aliasMap;
-	
-	private List<Object> paramList;
-		
+			
 	private static final String PREFIX = ":";
+	
+	private static final String WHERE =" WHERE ";
 	
 	
 	public void eq(String param,Object value){
@@ -96,11 +96,12 @@ public class Where {
 		StringBuilder builder = new StringBuilder();
 		Map<String,AtomicInteger> paramIndexMap = Maps.newHashMap();
 		if(CollectionUtils.isNotEmpty(expressions)){
+			builder.append(WHERE);
 			for (Expression expression : expressions) {
 				dealWithExpression(expression, builder, paramIndexMap);
 				builder.append(Operator.and.getOp());
 			}
-			builder.append(" 1<>1");
+			builder.append(" 1=1");
 		}
 		return builder.toString();
 	}
@@ -121,7 +122,6 @@ public class Where {
 			String column = aliasMap.get(field);
 			builder.append(column).append(likeExpression.getOp().getOp()).append(MatchMode.MatchKey(likeExpression.getMatchMode(), param));
 			paramsMap.put(param, likeExpression.getRight());
-			paramList.add(likeExpression.getRight());
 		}else{
 			if(expression.getLeft() instanceof Expression){
 				builder.append("(");
@@ -136,7 +136,6 @@ public class Where {
 				String column = aliasMap.get(field);
 				builder.append(column).append(expression.getOp().getOp()).append(param);
 				paramsMap.put(param, expression.getRight());
-				paramList.add(expression.getRight());
 			}
 		}
 	}
@@ -152,19 +151,17 @@ public class Where {
 	private String getParamName(String param,Map<String,AtomicInteger> paramIndexMap){
 		StringBuilder builder = new StringBuilder();
 		builder.append(PREFIX).append(param);
-		if(paramsMap.containsKey(param)){
-			if(paramIndexMap==null){
-				paramIndexMap = Maps.newHashMap();
-			}
-			AtomicInteger index = null;
-			if(paramIndexMap.containsKey(param)){
-				index=paramIndexMap.get(param);
-			}else{
-				index = new AtomicInteger(0);
-				paramIndexMap.put(param, index);
-			}
-			builder.append(index.incrementAndGet());
+		if(paramIndexMap==null){
+			paramIndexMap = Maps.newHashMap();
 		}
+		AtomicInteger index = null;
+		if(paramIndexMap.containsKey(param)){
+			index=paramIndexMap.get(param);
+		}else{
+			index = new AtomicInteger(0);
+			paramIndexMap.put(param, index);
+		}
+		builder.append(index.incrementAndGet());
 		return builder.toString();
 	}
 	

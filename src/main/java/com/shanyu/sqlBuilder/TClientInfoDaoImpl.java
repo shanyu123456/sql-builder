@@ -38,6 +38,7 @@ public class TClientInfoDaoImpl extends JdbcTemplateDaoSupport<com.shanyu.sqlBui
 		return getList(builder);
 	};
 	
+	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
 		Map<String,DruidDataSource> dataSourceMap=context.getBeansOfType(DruidDataSource.class);

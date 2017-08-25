@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class From {
 	
-	public final static String FROM = "FROM";
+	public final static String FROM = " FROM ";
 	
 	public final static String SEPARATOR = ".";
 	
@@ -35,7 +35,7 @@ public class From {
 		Preconditions.checkArgument(StringUtils.isNotEmpty(tableName), "tableName is null!");
 		Preconditions.checkArgument(StringUtils.isNotEmpty(catalog), "catalog is null!");
 		StringBuilder builder = new StringBuilder();
-		builder.append(FROM).append(" ").append(catalog).append(SEPARATOR).append(tableName);
+		builder.append(FROM).append(catalog).append(SEPARATOR).append(tableName);
 		return builder.toString();
 	}
 	

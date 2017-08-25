@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.shanyu.sqlBuilder.annoation.Column;
 import com.shanyu.sqlBuilder.annoation.Table;
 import com.shanyu.sqlBuilder.constant.MatchMode;
+import com.shanyu.sqlBuilder.constant.Operator;
 import com.shanyu.sqlBuilder.expression.Expression;
 import com.shanyu.sqlBuilder.sql.From;
 import com.shanyu.sqlBuilder.sql.Select;
@@ -55,6 +56,13 @@ public class SqlBuilder {
 	private From from;
 	
 	private Where where;
+	
+	private PageDto pageDto;
+	
+	private static final String ROWNUM = "ROWNUM";
+	
+	private static final String ROWNUM_ALIAS = "rn";
+	
 	
 	/**
 	 * 
@@ -123,7 +131,7 @@ public class SqlBuilder {
 			paramsMap = Maps.newHashMap();
 		}
 		if(where==null){
-			where = new Where(Lists.newArrayList(),paramsMap,aliasMap);
+			where = new Where(Lists.newArrayList(),paramsMap,aliasMap,Maps.newHashMap());
 		}
 	}
 	
@@ -162,6 +170,14 @@ public class SqlBuilder {
 		where.addExpression(expression);
 	}
 	
+	public void setPageDto(PageDto pageDto){
+		this.pageDto = pageDto;
+	}
+	
+	public PageDto getPageDto(){
+		return this.pageDto;
+	}
+	
 	public static SqlBuilder createBuilder(Class<?> entity,String...queryProps){
 		SqlBuilder builder = new SqlBuilder();
 		builder.entity = entity;
@@ -176,7 +192,21 @@ public class SqlBuilder {
 	
 	public String toSql(){
 		StringBuilder builder = new StringBuilder();
-		builder.append(select.toSql()).append(from.toSql()).append(where.toSql());
+		if(pageDto==null){
+			builder.append(select.toSql()).append(from.toSql()).append(where.toSql());
+		}else{
+			StringBuilder subBuilder = new StringBuilder();
+			subBuilder.append(select.toSql()).append(" , ").append(ROWNUM).append(" ").append(ROWNUM_ALIAS)
+			.append(from.toSql()).append(where.toSql());
+			builder.append(Select.SELECT).append(StringUtils.join(select.getSelectColumns().toArray()," ,"))
+			.append(From.FROM).append("(").append(subBuilder.toString()).append(")");
+			String rnLeft = where.getParamName(ROWNUM_ALIAS);
+			String rnRight = where.getParamName(ROWNUM_ALIAS);
+			where.addparam(rnRight, pageDto.getPageSize()*(pageDto.getPageNum()-1)+1);
+			where.addparam(rnLeft, pageDto.getPageSize()*pageDto.getPageNum()+1);
+			builder.append(Where.WHERE).append(ROWNUM_ALIAS).append(Operator.lt.getOp()).append(rnLeft)
+			.append(Operator.and.getOp()).append(ROWNUM_ALIAS).append(Operator.ge.getOp()).append(rnRight);
+		} 
 		return builder.toString();
 	}
 	

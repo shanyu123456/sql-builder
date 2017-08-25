@@ -9,12 +9,8 @@
 
 package com.shanyu.sqlBuilder.builder;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -24,14 +20,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.shanyu.sqlBuilder.annoation.Table;
-import com.shanyu.sqlBuilder.builder.SqlBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,45 +95,24 @@ public class JdbcTemplateDaoSupport<T> extends JdbcDaoSupport implements Applica
 			finalSql=finalSql.replace(param, REPLACE_STR);
 			objList.add(builder.getParamMap().get(param));
 		}
-		List<T> list= this.jdbcTemplate.query(finalSql, objList.toArray(new Object[objList.size()]), new RowMapper<T>(){
-			@Override
-			public T mapRow(ResultSet rs, int rowNum) throws SQLException {
-				try {
-					T t = entity.newInstance();
-					for (String column : builder.getSelectColumns()) {
-						Field field = entity.getDeclaredField(column);
-						field.setAccessible(true);
-						setFieldValue(field, t, rs);
-					}
-					return t;
-				} catch (InstantiationException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				} catch (NoSuchFieldException e) {
-					e.printStackTrace();
-				} catch (SecurityException e) {
-					e.printStackTrace();
-				}
-				return null;
-			}});
+		List<T> list= this.jdbcTemplate.query(finalSql, objList.toArray(new Object[objList.size()]), new BeanPropertyRowMapper<T>(entity));
 		if(CollectionUtils.isEmpty(list)){
-			return Lists.newArrayList();
+			list = Lists.newArrayList();
+		}
+		if(builder.getPageDto()!=null){
+			builder.getPageDto().setCurrentCount(list.size());
 		}
 		return list;
 	}
 	
-	private void setFieldValue(Field field,Object obj,ResultSet rs) throws IllegalArgumentException, IllegalAccessException, SQLException{
-		if(field.getType()== Integer.class){
-			field.set(obj, rs.getInt(field.getName()));
-		}else if(field.getType() == Long.class){
-			field.set(obj, rs.getLong(field.getName()));
-		}else if(field.getType() == Date.class){
-			field.set(obj, rs.getDate(field.getName()));
-		}else if(field.getType()==String.class){
-			field.set(obj, rs.getString(field.getName()));
-		}else if(field.getType()==Boolean.class){
-			field.setBoolean(obj, rs.getBoolean(field.getName()));
+	@Override
+	public T getSingleObject(SqlBuilder builder) {
+		List<T> list = getList(builder);
+		Preconditions.checkArgument(list.size()<=1, "not single record!");
+		if(list.size()==1){
+			return list.get(0);
+		}else{
+			return null;
 		}
 	}
 

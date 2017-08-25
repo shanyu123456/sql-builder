@@ -47,10 +47,12 @@ public class Where {
 	private Map<String,Object> paramsMap;
 	
 	private Map<String,String> aliasMap;
+	
+	private Map<String,AtomicInteger> paramIndexMap;
 			
 	private static final String PREFIX = ":";
 	
-	private static final String WHERE =" WHERE ";
+	public static final String WHERE =" WHERE ";
 	
 	
 	public void eq(String param,Object value){
@@ -94,11 +96,11 @@ public class Where {
 	
 	public String toSql(){
 		StringBuilder builder = new StringBuilder();
-		Map<String,AtomicInteger> paramIndexMap = Maps.newHashMap();
+		
 		if(CollectionUtils.isNotEmpty(expressions)){
 			builder.append(WHERE);
 			for (Expression expression : expressions) {
-				dealWithExpression(expression, builder, paramIndexMap);
+				dealWithExpression(expression, builder);
 				builder.append(Operator.and.getOp());
 			}
 			builder.append(" 1=1");
@@ -113,11 +115,11 @@ public class Where {
 	 * @param expression    
 	 * @throws
 	 */
-	private void dealWithExpression(Expression expression,StringBuilder builder,Map<String,AtomicInteger> paramIndexMap){
+	private void dealWithExpression(Expression expression,StringBuilder builder){
 		if(expression instanceof LikeExpression){//like
 			LikeExpression likeExpression = (LikeExpression) expression;
 			String field = (String) expression.getLeft();
-			String param = getParamName(field, paramIndexMap);
+			String param = getParamName(field);
 			Preconditions.checkArgument(aliasMap.containsKey(field),"column "+param+" not exists!");
 			String column = aliasMap.get(field);
 			builder.append(column).append(likeExpression.getOp().getOp()).append(MatchMode.MatchKey(likeExpression.getMatchMode(), param));
@@ -125,13 +127,13 @@ public class Where {
 		}else{
 			if(expression.getLeft() instanceof Expression){
 				builder.append("(");
-				dealWithExpression((Expression) expression.getLeft(), builder, paramIndexMap);
+				dealWithExpression((Expression) expression.getLeft(), builder);
 				builder.append(")").append(expression.op.getOp()).append("(");
-				dealWithExpression((Expression) expression.getRight(), builder, paramIndexMap);
+				dealWithExpression((Expression) expression.getRight(), builder);
 				builder.append(")");
 			}else{
 				String field = (String) expression.getLeft();
-				String param = getParamName(field, paramIndexMap);
+				String param = getParamName(field);
 				Preconditions.checkArgument(aliasMap.containsKey(field),"column "+param+" not exists!");
 				String column = aliasMap.get(field);
 				builder.append(column).append(expression.getOp().getOp()).append(param);
@@ -148,7 +150,7 @@ public class Where {
 	 * @return    
 	 * @throws
 	 */
-	private String getParamName(String param,Map<String,AtomicInteger> paramIndexMap){
+	public String getParamName(String param){
 		StringBuilder builder = new StringBuilder();
 		builder.append(PREFIX).append(param);
 		if(paramIndexMap==null){
@@ -163,6 +165,10 @@ public class Where {
 		}
 		builder.append(index.incrementAndGet());
 		return builder.toString();
+	}
+	
+	public void addparam(String paramName,Object value){
+		paramsMap.put(paramName, value);
 	}
 	
 	public static void main(String[] args) {

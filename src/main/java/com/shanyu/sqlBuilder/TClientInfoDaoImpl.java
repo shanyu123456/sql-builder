@@ -17,7 +17,9 @@ import org.springframework.stereotype.Repository;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.shanyu.sqlBuilder.builder.JdbcTemplateDaoSupport;
+import com.shanyu.sqlBuilder.builder.PageDto;
 import com.shanyu.sqlBuilder.builder.SqlBuilder;
+import com.shanyu.sqlBuilder.po.TClientInfo;
 
 /**
  * ClassName:TClientInfoDaoImpl <br/>
@@ -30,11 +32,18 @@ import com.shanyu.sqlBuilder.builder.SqlBuilder;
  * @see 	 
  */
 @Repository
-public class TClientInfoDaoImpl extends JdbcTemplateDaoSupport<com.shanyu.sqlBuilder.po.TClientInfo> {
+public class TClientInfoDaoImpl extends JdbcTemplateDaoSupport<TClientInfo> {
 	
-	List<com.shanyu.sqlBuilder.po.TClientInfo> getList(String clientId){
+	List<TClientInfo> getList(String clientId,PageDto pageDto){
 		SqlBuilder builder = createBuilder();
 		builder.eq("clientId", clientId);
+		builder.setPageDto(pageDto);
+		return getList(builder);
+	};
+	
+	List<TClientInfo> getAllList(PageDto pageDto){
+		SqlBuilder builder = createBuilder();
+		builder.setPageDto(pageDto);
 		return getList(builder);
 	};
 	
@@ -44,7 +53,10 @@ public class TClientInfoDaoImpl extends JdbcTemplateDaoSupport<com.shanyu.sqlBui
 		Map<String,DruidDataSource> dataSourceMap=context.getBeansOfType(DruidDataSource.class);
 		System.out.println(dataSourceMap.keySet());
 		TClientInfoDaoImpl tclientInfoDao = context.getBean(TClientInfoDaoImpl.class);
-		System.out.println(tclientInfoDao.getList("2007117"));
+		PageDto page = new PageDto();
+		
+		List<TClientInfo> infos = tclientInfoDao.getAllList(page);
+		System.out.println(page);
 	}
 }
 

@@ -26,7 +26,7 @@ public class Select {
 	
 	private Map<String,String> aliasMap;
 	
-	private final static String SELECT = "SELECT ";
+	public final static String SELECT = "SELECT ";
 	
 	public void add(String...queryProps){
 		if(selectColumns==null){
@@ -42,16 +42,16 @@ public class Select {
 	public String toSql(){
 		StringBuilder builder = new StringBuilder();
 		builder.append(SELECT);
-		if(CollectionUtils.isNotEmpty(selectColumns)){
-			for (String alias : selectColumns) {
-				Preconditions.checkArgument(aliasMap.containsKey(alias), "字段"+alias+"不存在！");
-				String columnName = aliasMap.get(alias);
-				builder.append(columnName).append(" ").append(alias).append(", ");
+		if(CollectionUtils.isEmpty(selectColumns)){
+			if(selectColumns==null){
+				selectColumns = Lists.newArrayList();
 			}
-		}else{
-			for (String alias : aliasMap.keySet()) {
-				builder.append(aliasMap.get(alias)).append(" ").append(alias).append(", ");
-			}
+			selectColumns.addAll(aliasMap.keySet());
+		}
+		for (String alias : selectColumns) {
+			Preconditions.checkArgument(aliasMap.containsKey(alias), "字段"+alias+"不存在！");
+			String columnName = aliasMap.get(alias);
+			builder.append(columnName).append(" ").append(alias).append(", ");
 		}
 		builder.deleteCharAt(builder.length()-2);
 		return builder.toString();
